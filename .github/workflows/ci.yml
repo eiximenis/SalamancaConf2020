@@ -57,5 +57,5 @@ jobs:
           context: src/BeersWeb
           file: src/BeersWeb/Dockerfile
           platforms: linux/amd64
-          tags: s2020-api:${{ matrix.node-version }}-latest
+          tags: s2020-web:latest
           push: false
