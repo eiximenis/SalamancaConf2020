@@ -1,0 +1,43 @@
+﻿@page "/"
+
+@using System.Linq
+@using BeersWeb.Data
+@inject BeersService BeersService
+
+<h1>REAL beers</h1>
+
+@if (beers == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>&nbsp;</th>
+                <th>Name</th>
+                <th>Style</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var beer in beers)
+            {
+            <tr>
+                <td><img src="@beer.Image" /></td>
+                <td><a href="@beer.Link" target="_blank">@beer.Name</a></td>
+                <td>@beer.Style</td>
+            </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private Beer[] beers;
+
+    protected override async Task OnInitializedAsync()
+    {
+        beers = (await BeersService.GetBeers()).ToArray();
+    }
+}
