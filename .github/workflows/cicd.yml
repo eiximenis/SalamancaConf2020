@@ -82,7 +82,7 @@ jobs:
           name: webtar
           path: ./web.tar          
   
-  publishapi:
+  pushapi:
     needs: buildapi
 #    if: github.event_name == 'release'
     runs-on: ubuntu-latest
@@ -91,7 +91,6 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: apitar
-          path: ./api.tar
       - name: Imports api image
         run: docker load -i api.tar
       - name: Push image to repository
@@ -101,3 +100,32 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
           repository: eiximenis/s2020-api:15-latest
           tag_with_ref: true
+  pushweb:
+    needs: buildweb
+#    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download web package
+        uses: actions/download-artifact@v2
+        with:
+          name: webtar
+      - name: Imports api image
+        run: docker load -i web.tar
+      - name: Push image to repository
+        uses: docker/build-push-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          repository: eiximenis/s2020-web
+          tag_with_ref: true
+  publish:
+    needs: [pushapi, pushweb]
+    runs-on: ubuntu-latest
+    steps:
+    - name: deploy api
+      uses: deliverybot/helm@v1
+      with:
+        chart: s2020-api
+        namespace: s2020
+      env:
+        KUBECONFIG_FILE: '${{ secrets.KUBECONFIG }}'
