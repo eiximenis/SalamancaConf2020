@@ -89,7 +89,6 @@ jobs:
     steps:
       - name: Download api package
         uses: actions/download-artifact@v2
-        if:  matrix.node-version == 15
         with:
           name: apitar
           path: api.tar
