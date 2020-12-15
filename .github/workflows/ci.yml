@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [12.x, 15.x]
+        node-version: [12, 15]
 
     # Pasos a ejecutar
     steps:
@@ -41,6 +41,8 @@ jobs:
       - name: Docker build api
         uses: docker/build-push-action@v2
         with:
+          build-args: |
+            nv=${{ matrix.node-version }}
           context: src/api
           file: src/api/Dockerfile
           platforms: linux/amd64
