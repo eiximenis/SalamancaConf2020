@@ -49,16 +49,17 @@ jobs:
           file: src/api/Dockerfile
           platforms: linux/amd64
           tags: eiximenis/s2020-api:${{ matrix.node-version }}-latest
+          load: true
           push: false
-      - name: Exports image
+      - name: Exports api image
         if: matrix.node-version == 15
         run: docker save -o api.tar eiximenis/s2020-api:15-latest
-      - name: Upload package
+      - name: Upload api package
         uses: actions/upload-artifact@v2
         if:  matrix.node-version == 15
         with:
+          name: apitar
           path: api.tar
-
   buildweb:
     runs-on: ubuntu-latest
     steps:
@@ -71,10 +72,33 @@ jobs:
           file: src/BeersWeb/Dockerfile
           platforms: linux/amd64
           tags: eiximenis/s2020-web:latest
+          load: true
           push: false
+      - name: Exports  web image
+        run: docker save -o web.tar eiximenis/s2020-web:latest
+      - name: Upload package
+        uses: actions/upload-artifact@v2
+        with:
+          name: webtar
+          path: web.tar          
   
-#  publishapi:
-#    needs: buildapi
+  publishapi:
+    needs: buildapi
 #    if: github.event_name == 'release'
-#    runs-on: ubuntu-latest
-
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download api package
+        uses: actions/download-artifact@v2
+        if:  matrix.node-version == 15
+        with:
+          name: apitar
+          path: api.tar
+      - name: Imports api image
+        run: docker load -i api.tar
+      - name: Push image to repository
+        uses: docker/build-push-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          repository: eiximenis/s2020-api:15-latest
+          tag_with_ref: true
