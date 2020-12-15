@@ -73,8 +73,8 @@ jobs:
           tags: eiximenis/s2020-web:latest
           push: false
   
-  publishapi:
-    needs: buildapi
-    if: github.event_name == 'release'
-    runs-on: ubuntu-latest
+#  publishapi:
+#    needs: buildapi
+#    if: github.event_name == 'release'
+#    runs-on: ubuntu-latest
 
