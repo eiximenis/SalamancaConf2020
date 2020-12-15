@@ -59,7 +59,7 @@ jobs:
         if:  matrix.node-version == 15
         with:
           name: apitar
-          path: api.tar
+          path: ./api.tar
   buildweb:
     runs-on: ubuntu-latest
     steps:
@@ -80,7 +80,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: webtar
-          path: web.tar          
+          path: ./web.tar          
   
   publishapi:
     needs: buildapi
