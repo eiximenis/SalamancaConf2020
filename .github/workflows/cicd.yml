@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: CI
+name: CICD
 
 # Controls when the action will run. 
 on:
@@ -9,6 +9,8 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  release:  
+    types: [published]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -46,8 +48,17 @@ jobs:
           context: src/api
           file: src/api/Dockerfile
           platforms: linux/amd64
-          tags: s2020-api:${{ matrix.node-version }}-latest
+          tags: eiximenis/s2020-api:${{ matrix.node-version }}-latest
           push: false
+      - name: Exports image
+        if: matrix.node-version == 15
+        run: docker save -o api.tar eiximenis/s2020-api:15-latest
+      - name: Upload package
+        uses: actions/upload-artifact@v2
+        if:  matrix.node-version == 15
+        with:
+          path: api.tar
+
   buildweb:
     runs-on: ubuntu-latest
     steps:
@@ -59,5 +70,11 @@ jobs:
           context: src/BeersWeb
           file: src/BeersWeb/Dockerfile
           platforms: linux/amd64
-          tags: s2020-web:latest
+          tags: eiximenis/s2020-web:latest
           push: false
+  
+  publishapi:
+    needs: buildapi
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+
