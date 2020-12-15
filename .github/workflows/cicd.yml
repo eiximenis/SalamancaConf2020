@@ -91,7 +91,7 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: apitar
-          path: api.tar
+          path: ./api.tar
       - name: Imports api image
         run: docker load -i api.tar
       - name: Push image to repository
