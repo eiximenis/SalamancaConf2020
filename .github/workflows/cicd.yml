@@ -94,11 +94,11 @@ jobs:
       - name: Imports api image
         run: docker load -i api.tar
       - name: Push image to repository
-        uses: docker/build-push-action@v1
+        uses: docker/build-push-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
-          repository: eiximenis/s2020-api:15-latest
+          repository: eiximenis/s2020-api
           tag_with_ref: true
   pushweb:
     needs: buildweb
@@ -112,7 +112,7 @@ jobs:
       - name: Imports api image
         run: docker load -i web.tar
       - name: Push image to repository
-        uses: docker/build-push-action@v1
+        uses: docker/build-push-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
