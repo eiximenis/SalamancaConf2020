@@ -1,5 +1,6 @@
 
-FROM node:15
+ARG nv=15
+FROM node:$nv
 
 # Create app directory
 WORKDIR /usr/src/app

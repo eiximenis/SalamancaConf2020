@@ -4,6 +4,8 @@ services:
   api:
     image: eiximenis/s2020-api
     build:
+      args:
+        nv: 15
       context: api
       dockerfile: Dockerfile
   web:
