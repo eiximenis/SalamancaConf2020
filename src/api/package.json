@@ -5,11 +5,13 @@
   "description": "a beers api with static content xD",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    "mocha": "^8.2.1",
+    "should": "^13.2.3"
   }
 }
