@@ -16,10 +16,11 @@ jobs:
         node-version: [12, 15]
     # Pasos a ejecutar
     steps:
+      # Hace pull del repo
+      - uses: actions/checkout@v2    
       - name: setbranch
         run: echo ::set-output name=short_ref::${GITHUB_REF#refs/*/} 
-      # Hace pull del repo
-      - uses: actions/checkout@v2
+      - run: echo ${{  steps.setbranch.outputs.short_ref }}
       # Instala y configura la versión de nodejs
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v1
@@ -36,7 +37,7 @@ jobs:
         with:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-        if: steps.setbranch.outputs.short_ref == 'master'    
+        if: github.event_name=='push' &&  steps.setbranch.outputs.short_ref == 'master'    
       - name: Docker build api
         uses: docker/build-push-action@v2
         with:
@@ -46,18 +47,20 @@ jobs:
           file: src/api/Dockerfile
           platforms: linux/amd64
           tags: docker.pkg.github.com/s2020-api:${{ matrix.node-version }}-${{ github.sha }}
-          push: ${{ steps.setbranch.outputs.short_ref == 'master'  }}
+          push: ${{ github.event_name=='push' && steps.setbranch.outputs.short_ref == 'master'  }}
   buildweb:
     runs-on: ubuntu-latest
     steps:
       # Hace pull del repo
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v2    
+      - name: setbranch
+        run: echo ::set-output name=short_ref::${GITHUB_REF#refs/*/}     
       - name: Login to github packages
         uses: docker/login-action@v1 
         with:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-        if: steps.setbranch.outputs.short_ref == 'master'         
+        if: github.event_name=='push' &&  steps.setbranch.outputs.short_ref == 'master'             
       - name: Docker build web
         uses: docker/build-push-action@v2
         with:
@@ -65,4 +68,5 @@ jobs:
           file: src/BeersWeb/Dockerfile
           platforms: linux/amd64
           tags: docker.pkg.github.com/s2020-web:${{ github.sha }}
+          push: ${{ github.event_name=='push' && steps.setbranch.outputs.short_ref == 'master'  }}
           
