@@ -1,10 +1,16 @@
 # This is a basic workflow to help you get started with Actions
 
-name: CI
+name: CI-API
 
 # Controls when the action will run.
-# on: [push, pull_request, workflow_dispatch]
-on: [workflow_dispatch]
+on:
+  pull_request:
+    paths:
+    - "src/api/**"
+  push:
+    paths:
+    - "src/api/**"
+  workflow_dispatch:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -52,34 +58,3 @@ jobs:
           platforms: linux/amd64
           tags: ghcr.io/${{ github.repository_owner }}/s2020-api:${{ matrix.node-version }}-${{ github.sha }}
           push: ${{ github.event_name=='push' && steps.setbranch.outputs.short_ref == 'main'  }}
-#      - name: Push image
-#        if: github.event_name=='push' && steps.setbranch.outputs.short_ref == 'main' 
-#        run: docker push ghcr.io/${{ github.repository_owner }}/s2020-api:${{ matrix.node-version }}-${{ github.sha }}
-  buildweb:
-    runs-on: ubuntu-latest
-    steps:
-      # Hace pull del repo
-      - uses: actions/checkout@v2    
-      - name: Set current branch
-        id: setbranch
-        run: echo ::set-output name=short_ref::${GITHUB_REF#refs/*/}     
-      - uses: docker/setup-buildx-action@v1
-      - name: Login to github packages
-        uses: docker/login-action@v1 
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.CR_PAT }}
-        if: github.event_name=='push' &&  steps.setbranch.outputs.short_ref == 'main'             
-      - name: Docker build web
-        uses: docker/build-push-action@v2
-        with:
-          context: src/BeersWeb
-          file: src/BeersWeb/Dockerfile
-          platforms: linux/amd64
-          tags: ghcr.io/${{ github.repository_owner }}/s2020-web:${{ github.sha }}
-          push: ${{ github.event_name=='push' && steps.setbranch.outputs.short_ref == 'main'  }}
-#      - name: push image
-#        if: github.event_name=='push' && steps.setbranch.outputs.short_ref == 'main'
-#        run: docker push ghcr.io/${{ github.repository_owner }}/s2020-web:${{ github.sha }}
-
