@@ -38,7 +38,7 @@ jobs:
         uses: docker/login-action@v1 
         with:
           registry: ghcr.io
-          username: ${{ github.actor }}
+          username: ${{ github.repository_owner }}
           password: ${{ secrets.CR_PAT }}
         if: github.event_name=='push' &&  steps.setbranch.outputs.short_ref == 'main'    
       - name: Docker build api
@@ -64,7 +64,7 @@ jobs:
         uses: docker/login-action@v1 
         with:
           registry: ghcr.io
-          username: ${{ github.actor }}
+          username: ${{ github.repository_owner }}
           password: ${{ secrets.CR_PAT }}
         if: github.event_name=='push' &&  steps.setbranch.outputs.short_ref == 'main'             
       - name: Docker build web
