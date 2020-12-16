@@ -50,7 +50,11 @@ jobs:
           file: src/api/Dockerfile
           platforms: linux/amd64
           tags: ghcr.io/${{ github.repository_owner }}/s2020-api:${{ matrix.node-version }}-${{ github.sha }}
-          push: ${{ github.event_name=='push' && steps.setbranch.outputs.short_ref == 'main'  }}
+          push: false
+#          push: ${{ github.event_name=='push' && steps.setbranch.outputs.short_ref == 'main'  }}
+      - name: Push image
+        if: github.event_name=='push' && steps.setbranch.outputs.short_ref == 'main' 
+        run: docker push ghcr.io/${{ github.repository_owner }}/s2020-api:${{ matrix.node-version }}-${{ github.sha }}
   buildweb:
     runs-on: ubuntu-latest
     steps:
@@ -74,5 +78,9 @@ jobs:
           file: src/BeersWeb/Dockerfile
           platforms: linux/amd64
           tags: ghcr.io/${{ github.repository_owner }}/s2020-web:${{ github.sha }}
-          push: ${{ github.event_name=='push' && steps.setbranch.outputs.short_ref == 'main'  }}
+#          push: ${{ github.event_name=='push' && steps.setbranch.outputs.short_ref == 'main'  }}
+          push: false
+      - name: push image
+        if: github.event_name=='push' && steps.setbranch.outputs.short_ref == 'main'
+        run: docker push ghcr.io/${{ github.repository_owner }}/s2020-web:${{ github.sha }}
 
