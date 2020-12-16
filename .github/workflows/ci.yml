@@ -49,9 +49,8 @@ jobs:
           context: src/api
           file: src/api/Dockerfile
           platforms: linux/amd64
-          tags: ghcr.io/s2020-api:${{ matrix.node-version }}-${{ github.sha }}
+          tags: ghcr.io/eiximenis/s2020-api:${{ matrix.node-version }}-${{ github.sha }}
           push: ${{ github.event_name=='push' && steps.setbranch.outputs.short_ref == 'main'  }}
-          outputs: type=image,oci-mediatypes=true
   buildweb:
     runs-on: ubuntu-latest
     steps:
@@ -74,7 +73,5 @@ jobs:
           context: src/BeersWeb
           file: src/BeersWeb/Dockerfile
           platforms: linux/amd64
-          tags: ghcr.io/s2020-web:${{ github.sha }}
+          tags: ghcr.io/eiximenis/s2020-web:${{ github.sha }}
           push: ${{ github.event_name=='push' && steps.setbranch.outputs.short_ref == 'main'  }}
-          outputs: type=image,oci-mediatypes=true
-          
