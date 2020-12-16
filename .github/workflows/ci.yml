@@ -31,7 +31,7 @@ jobs:
       # Ejecuta npm test
       - run: npm test
         working-directory: src/api
-      - name: Login to DockerHub
+      - name: Login to github packages
         uses: docker/login-action@v1 
         with:
           username: ${{ github.actor }}
@@ -45,18 +45,24 @@ jobs:
           context: src/api
           file: src/api/Dockerfile
           platforms: linux/amd64
-          registry: docker.pkg.github.com/s2020-api:${{ matrix.node-version }}-${{ github.sha }}
+          tags: docker.pkg.github.com/s2020-api:${{ matrix.node-version }}-${{ github.sha }}
           push: ${{ steps.setbranch.outputs.short_ref == 'master'  }}
   buildweb:
     runs-on: ubuntu-latest
     steps:
       # Hace pull del repo
       - uses: actions/checkout@v2
+      - name: Login to github packages
+        uses: docker/login-action@v1 
+        with:
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+        if: steps.setbranch.outputs.short_ref == 'master'         
       - name: Docker build web
         uses: docker/build-push-action@v2
         with:
           context: src/BeersWeb
           file: src/BeersWeb/Dockerfile
           platforms: linux/amd64
-          tags: eiximenis/s2020-web:${{ github.sha }}
+          tags: docker.pkg.github.com/s2020-web:${{ github.sha }}
           
