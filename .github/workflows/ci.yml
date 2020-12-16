@@ -50,7 +50,7 @@ jobs:
           file: src/api/Dockerfile
           platforms: linux/amd64
           tags: ghcr.io/${{ github.repository_owner }}/s2020-api:${{ matrix.node-version }}-${{ github.sha }}
-          local: true
+          load: true
           push: false
 #          push: ${{ github.event_name=='push' && steps.setbranch.outputs.short_ref == 'main'  }}
       - name: Push image
@@ -78,7 +78,7 @@ jobs:
           context: src/BeersWeb
           file: src/BeersWeb/Dockerfile
           platforms: linux/amd64
-          local: true
+          load: true
           tags: ghcr.io/${{ github.repository_owner }}/s2020-web:${{ github.sha }}
 #          push: ${{ github.event_name=='push' && steps.setbranch.outputs.short_ref == 'main'  }}
           push: false
