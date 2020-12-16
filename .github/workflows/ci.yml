@@ -18,7 +18,8 @@ jobs:
     steps:
       # Hace pull del repo
       - uses: actions/checkout@v2    
-      - name: setbranch
+      - name: Set current branch
+        id: setbranch
         run: echo ::set-output name=short_ref::${GITHUB_REF#refs/*/} 
       - run: echo ${{  steps.setbranch.outputs.short_ref }}
       # Instala y configura la versión de nodejs
@@ -53,7 +54,8 @@ jobs:
     steps:
       # Hace pull del repo
       - uses: actions/checkout@v2    
-      - name: setbranch
+      - name: Set current branch
+        id: setbranch
         run: echo ::set-output name=short_ref::${GITHUB_REF#refs/*/}     
       - name: Login to github packages
         uses: docker/login-action@v1 
