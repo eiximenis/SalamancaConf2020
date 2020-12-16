@@ -22,7 +22,6 @@ jobs:
       - name: Set current branch
         id: setbranch
         run: echo ::set-output name=short_ref::${GITHUB_REF#refs/*/} 
-      - run: echo ${{  steps.setbranch.outputs.short_ref }}
       # Instala y configura la versión de nodejs
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v1

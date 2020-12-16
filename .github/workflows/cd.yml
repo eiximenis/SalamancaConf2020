@@ -21,6 +21,9 @@ jobs:
       # Hace pull del repo
       - uses: actions/checkout@v2
       # Instala y configura la versión de nodejs
+      - name: Set current tag
+        id: settag
+        run: echo ::set-output name=short_ref::${GITHUB_REF#refs/*/}       
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v1
         with:
@@ -45,13 +48,16 @@ jobs:
           context: src/api
           file: src/api/Dockerfile
           platforms: linux/amd64
-          tags: eiximenis/s2020-api:${{ matrix.node-version }}-${{ github.ref }}
+          tags: eiximenis/s2020-api:${{ matrix.node-version }}-${{ steps.settag.outputs.short_ref }}
           push: true
   buildweb:
     runs-on: ubuntu-latest
     steps:
       # Hace pull del repo
       - uses: actions/checkout@v2
+      - name: Set current tag
+        id: settag
+        run: echo ::set-output name=short_ref::${GITHUB_REF#refs/*/}        
       - uses: docker/setup-buildx-action@v1        
       - name: Login to Docker Hub
         uses: docker/login-action@v1 
@@ -64,7 +70,7 @@ jobs:
           context: src/BeersWeb
           file: src/BeersWeb/Dockerfile
           platforms: linux/amd64
-          tags: eiximenis/s2020-web:${{ github.ref }}
+          tags: eiximenis/s2020-web:${{ steps.settag.outputs.short_ref }}
           push: true
   
   deployapiddev:
@@ -76,14 +82,16 @@ jobs:
       NAMESPACE: dev
       APPNAME: apidev
       IMAGE: eiximenis/s2020-api
-      TAG: 15-${{ github.ref }}
     steps:
-    - uses: actions/checkout@v2
-    - name: Helm install API
-      uses: WyriHaximus/github-action-helm3@v2
-      with:
-        kubeconfig: '${{ secrets.KUBECONFIG }}'
-        exec: helm upgrade $APPNAME charts/api  --install --wait --atomic --namespace=$NAMESPACE --set=app.name=$APPNAME --set image.repository=$IMAGE --set image.tag=$TAG
+      - uses: actions/checkout@v2
+      - name: Set current tag
+        id: settag
+        run: echo ::set-output name=short_ref::${GITHUB_REF#refs/*/}      
+      - name: Helm install API
+        uses: WyriHaximus/github-action-helm3@v2
+        with:
+          kubeconfig: '${{ secrets.KUBECONFIG }}'
+          exec: helm upgrade $APPNAME charts/api  --install --wait --atomic --namespace=$NAMESPACE --set=app.name=$APPNAME --set image.repository=$IMAGE --set image.tag=${{ steps.settag.outputs.short_ref }}
   deploywebddev:
     needs: [buildapi, buildweb]
     runs-on: ubuntu-latest
@@ -93,12 +101,14 @@ jobs:
       NAMESPACE: dev
       APPNAME: webdev
       IMAGE: eiximenis/s2020-web
-      TAG: ${{ github.ref }}
     steps:
-    - uses: actions/checkout@v2
-    - name: Helm install API
-      uses: WyriHaximus/github-action-helm3@v2
-      with:
-        kubeconfig: '${{ secrets.KUBECONFIG }}'
-        exec: helm upgrade $APPNAME charts/web  --install --wait --atomic --namespace=$NAMESPACE --set=app.name=$APPNAME --set image.repository=$IMAGE --set image.tag=$TAG
-    
+      - uses: actions/checkout@v2
+      - name: Set current tag
+        id: settag
+        run: echo ::set-output name=short_ref::${GITHUB_REF#refs/*/}  
+      - name: Helm install WEB
+        uses: WyriHaximus/github-action-helm3@v2
+        with:
+          kubeconfig: '${{ secrets.KUBECONFIG }}'
+          exec: helm upgrade $APPNAME charts/web  --install --wait --atomic --namespace=$NAMESPACE --set=app.name=$APPNAME --set image.repository=$IMAGE --set image.tag=${{ steps.settag.outputs.short_ref }}
+      
