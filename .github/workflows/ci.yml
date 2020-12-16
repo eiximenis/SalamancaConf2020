@@ -1,0 +1,62 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the action will run.
+on: [push, pull_request, workflow_dispatch]
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  buildapi:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [12, 15]
+    # Pasos a ejecutar
+    steps:
+      - name: setbranch
+        run: echo ::set-output name=short_ref::${GITHUB_REF#refs/*/} 
+      # Hace pull del repo
+      - uses: actions/checkout@v2
+      # Instala y configura la versión de nodejs
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      # Ejecuta npm install
+      - run: npm install
+        working-directory: src/api
+      # Ejecuta npm test
+      - run: npm test
+        working-directory: src/api
+      - name: Login to DockerHub
+        uses: docker/login-action@v1 
+        with:
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+        if: steps.setbranch.outputs.short_ref == 'master'    
+      - name: Docker build api
+        uses: docker/build-push-action@v2
+        with:
+          build-args: |
+            nv=${{ matrix.node-version }}
+          context: src/api
+          file: src/api/Dockerfile
+          platforms: linux/amd64
+          registry: docker.pkg.github.com/s2020-api:${{ matrix.node-version }}-${{ github.sha }}
+          push: ${{ steps.setbranch.outputs.short_ref == 'master'  }}
+  buildweb:
+    runs-on: ubuntu-latest
+    steps:
+      # Hace pull del repo
+      - uses: actions/checkout@v2
+      - name: Docker build web
+        uses: docker/build-push-action@v2
+        with:
+          context: src/BeersWeb
+          file: src/BeersWeb/Dockerfile
+          platforms: linux/amd64
+          tags: eiximenis/s2020-web:${{ github.sha }}
+          
