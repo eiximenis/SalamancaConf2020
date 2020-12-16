@@ -5,10 +5,7 @@ name: CD
 # Controls when the action will run. 
 on:
   release:  
-    types: [published]
-
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
+    types: [published, workflow_dispatch]
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -19,7 +16,6 @@ jobs:
     strategy:
       matrix:
         node-version: [12, 15]
-
     # Pasos a ejecutar
     steps:
       # Hace pull del repo
@@ -35,6 +31,12 @@ jobs:
       # Ejecuta npm test
       - run: npm test
         working-directory: src/api
+      - uses: docker/setup-buildx-action@v1        
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1 
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}      
       - name: Docker build api
         uses: docker/build-push-action@v2
         with:
@@ -43,83 +45,60 @@ jobs:
           context: src/api
           file: src/api/Dockerfile
           platforms: linux/amd64
-          tags: eiximenis/s2020-api:${{ matrix.node-version }}-latest
-          load: true
-          push: false
-      - name: Exports api image
-        if: matrix.node-version == 15
-        run: docker save -o api.tar eiximenis/s2020-api:15-latest
-      - name: Upload api package
-        uses: actions/upload-artifact@v2
-        if:  matrix.node-version == 15
-        with:
-          name: apitar
-          path: ./api.tar
+          tags: eiximenis/s2020-api:${{ matrix.node-version }}-${{ github.ref }}
+          push: true
   buildweb:
     runs-on: ubuntu-latest
     steps:
       # Hace pull del repo
       - uses: actions/checkout@v2
+      - uses: docker/setup-buildx-action@v1        
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1 
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}        
       - name: Docker build web
         uses: docker/build-push-action@v2
         with:
           context: src/BeersWeb
           file: src/BeersWeb/Dockerfile
           platforms: linux/amd64
-          tags: eiximenis/s2020-web:latest
-          load: true
-          push: false
-      - name: Exports  web image
-        run: docker save -o web.tar eiximenis/s2020-web:latest
-      - name: Upload package
-        uses: actions/upload-artifact@v2
-        with:
-          name: webtar
-          path: ./web.tar          
+          tags: eiximenis/s2020-web:${{ github.ref }}
+          push: true
   
-  pushapi:
-    needs: buildapi
-#    if: github.event_name == 'release'
+  deployapiddev:
+    needs: [buildapi, buildweb]
     runs-on: ubuntu-latest
+    environment: dev
+    env:
+      DNS: s2020.westeurope.cloudapp.azure.com
+      NAMESPACE: dev
+      APPNAME: apidev
+      IMAGE: eiximenis/s2020-api
+      TAG: 15-${{ github.ref }}
     steps:
-      - name: Download api package
-        uses: actions/download-artifact@v2
-        with:
-          name: apitar
-      - name: Imports api image
-        run: docker load -i api.tar
-      - name: Login into docker registry
-        run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-      - name: Retag api image
-        run: docker tag eiximenis/s2020-api:15-latest eiximenis/s2020-api:$GITHUB_REF
-      - name: Push image
-        run: docker push eiximenis/s2020-api:$GITHUB_REF
-  pushweb:
-    needs: buildweb
-#    if: github.event_name == 'release'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download web package
-        uses: actions/download-artifact@v2
-        with:
-          name: webtar
-      - name: Imports api image
-        run: docker load -i web.tar
-      - name: Login into docker registry
-        run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-      - name: Retag web image
-        run: docker tag eiximenis/s2020-web:latest eiximenis/s2020-web:$GITHUB_REF
-      - name: Push image
-        run: docker push eiximenis/s2020-web:$GITHUB_REF
-
-  publish:
-    needs: [pushapi, pushweb]
-    runs-on: ubuntu-latest
-    steps:
-    - name: deploy api
-      uses: deliverybot/helm@v1
+    - uses: actions/checkout@v2
+    - name: Helm install API
+      uses: WyriHaximus/github-action-helm3@v2
       with:
-        chart: s2020-api
-        namespace: s2020
-      env:
-        KUBECONFIG_FILE: '${{ secrets.KUBECONFIG }}'
+        kubeconfig: '${{ secrets.KUBECONFIG }}'
+        exec: helm upgrade $APPNAME charts/api  --install --wait --atomic --namespace=$NAMESPACE --set=app.name=$APPNAME --set image.repository=$IMAGE --set image.tag=$TAG
+  deploywebddev:
+    needs: [buildapi, buildweb]
+    runs-on: ubuntu-latest
+    environment: dev
+    env:
+      DNS: s2020.westeurope.cloudapp.azure.com
+      NAMESPACE: dev
+      APPNAME: webdev
+      IMAGE: eiximenis/s2020-web
+      TAG: ${{ github.ref }}
+    steps:
+    - uses: actions/checkout@v2
+    - name: Helm install API
+      uses: WyriHaximus/github-action-helm3@v2
+      with:
+        kubeconfig: '${{ secrets.KUBECONFIG }}'
+        exec: helm upgrade $APPNAME charts/web  --install --wait --atomic --namespace=$NAMESPACE --set=app.name=$APPNAME --set image.repository=$IMAGE --set image.tag=$TAG
+    
