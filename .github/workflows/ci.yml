@@ -38,7 +38,7 @@ jobs:
         with:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-        if: github.event_name=='push' &&  steps.setbranch.outputs.short_ref == 'master'    
+        if: github.event_name=='push' &&  steps.setbranch.outputs.short_ref == 'main'    
       - name: Docker build api
         uses: docker/build-push-action@v2
         with:
@@ -48,7 +48,7 @@ jobs:
           file: src/api/Dockerfile
           platforms: linux/amd64
           tags: docker.pkg.github.com/s2020-api:${{ matrix.node-version }}-${{ github.sha }}
-          push: ${{ github.event_name=='push' && steps.setbranch.outputs.short_ref == 'master'  }}
+          push: ${{ github.event_name=='push' && steps.setbranch.outputs.short_ref == 'main'  }}
   buildweb:
     runs-on: ubuntu-latest
     steps:
@@ -62,7 +62,7 @@ jobs:
         with:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-        if: github.event_name=='push' &&  steps.setbranch.outputs.short_ref == 'master'             
+        if: github.event_name=='push' &&  steps.setbranch.outputs.short_ref == 'main'             
       - name: Docker build web
         uses: docker/build-push-action@v2
         with:
@@ -70,5 +70,5 @@ jobs:
           file: src/BeersWeb/Dockerfile
           platforms: linux/amd64
           tags: docker.pkg.github.com/s2020-web:${{ github.sha }}
-          push: ${{ github.event_name=='push' && steps.setbranch.outputs.short_ref == 'master'  }}
+          push: ${{ github.event_name=='push' && steps.setbranch.outputs.short_ref == 'main'  }}
           
