@@ -84,7 +84,7 @@ jobs:
       NAMESPACE: dev
       APPNAME: apidev
       IMAGE: eiximenis/s2020-api
-      INGRESSPATH: "/web"      
+      INGRESSPATH: "/api"      
     steps:
       - uses: actions/checkout@v2
       - name: Set current tag
@@ -94,7 +94,7 @@ jobs:
         uses: WyriHaximus/github-action-helm3@v2
         with:
           kubeconfig: '${{ secrets.KUBECONFIG }}'
-          exec: helm upgrade $APPNAME charts/api  --install --wait --atomic --namespace=$NAMESPACE  --set ingress.host=$DNS --set ingress.path=$INGRESSPATH   --set=app.name=$APPNAME --set image.repository=$IMAGE --set image.tag=${{ steps.settag.outputs.short_ref }}
+          exec: helm upgrade $APPNAME charts/api  --install --wait --atomic --namespace=$NAMESPACE  --set ingress.host=$DNS --set ingress.path=$INGRESSPATH   --set=app.name=$APPNAME --set image.repository=$IMAGE --set image.tag=15-${{ steps.settag.outputs.short_ref }}
   deploywebddev:
     needs: [buildapi, buildweb]
     runs-on: ubuntu-latest
@@ -107,6 +107,7 @@ jobs:
       APPNAME: webdev
       IMAGE: eiximenis/s2020-web
       INGRESSPATH: "/"
+      APIURL: http://apidev
     steps:
       - uses: actions/checkout@v2
       - name: Set current tag
@@ -116,5 +117,5 @@ jobs:
         uses: WyriHaximus/github-action-helm3@v2
         with:
           kubeconfig: '${{ secrets.KUBECONFIG }}'
-          exec: helm upgrade $APPNAME charts/web  --install --wait --atomic --namespace=$NAMESPACE --set ingress.host=$DNS --set ingress.path=$INGRESSPATH  --set=app.name=$APPNAME --set image.repository=$IMAGE --set image.tag=${{ steps.settag.outputs.short_ref }}
+          exec: helm upgrade $APPNAME charts/web  --install --wait --atomic --namespace=$NAMESPACE --set ingress.host=$DNS --set ingress.path=$INGRESSPATH  --set=app.name=$APPNAME --set image.repository=$IMAGE --set image.tag=${{ steps.settag.outputs.short_ref }} --set apiurl=$APIURL
       
