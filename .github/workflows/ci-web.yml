@@ -15,52 +15,6 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
-  buildapi:
-    # The type of runner that the job will run on
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [12, 15]
-    # Pasos a ejecutar
-    steps:
-      # Hace pull del repo
-      - uses: actions/checkout@v2    
-      - name: Set current branch
-        id: setbranch
-        run: echo ::set-output name=short_ref::${GITHUB_REF#refs/*/} 
-      - run: echo ${{  steps.setbranch.outputs.short_ref }}
-      # Instala y configura la versión de nodejs
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
-        with:
-          node-version: ${{ matrix.node-version }}
-      # Ejecuta npm install
-      - run: npm install
-        working-directory: src/api
-      # Ejecuta npm test
-      - run: npm test
-        working-directory: src/api
-      - uses: docker/setup-buildx-action@v1
-      - name: Login to github packages
-        uses: docker/login-action@v1 
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.CR_PAT }}
-        if: github.event_name=='push' &&  steps.setbranch.outputs.short_ref == 'main'    
-      - name: Docker build api
-        uses: docker/build-push-action@v2
-        with:
-          build-args: |
-            nv=${{ matrix.node-version }}
-          context: src/api
-          file: src/api/Dockerfile
-          platforms: linux/amd64
-          tags: ghcr.io/${{ github.repository_owner }}/s2020-api:${{ matrix.node-version }}-${{ github.sha }}
-          push: ${{ github.event_name=='push' && steps.setbranch.outputs.short_ref == 'main'  }}
-#      - name: Push image
-#        if: github.event_name=='push' && steps.setbranch.outputs.short_ref == 'main' 
-#        run: docker push ghcr.io/${{ github.repository_owner }}/s2020-api:${{ matrix.node-version }}-${{ github.sha }}
   buildweb:
     runs-on: ubuntu-latest
     steps:
