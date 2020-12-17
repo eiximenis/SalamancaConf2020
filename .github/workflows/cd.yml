@@ -119,7 +119,7 @@ jobs:
           kubeconfig: '${{ secrets.KUBECONFIG }}'
           exec: helm upgrade $APPNAME charts/web  --install --wait --atomic --namespace=$NAMESPACE --set ingress.host=$DNS --set ingress.path=$INGRESSPATH  --set=app.name=$APPNAME --set image.repository=$IMAGE --set image.tag=${{ steps.settag.outputs.short_ref }} --set apiurl=$APIURL
   deployapiprod:
-    needs: [deployapiddev, deploywebdev]
+    needs: [deployapiddev, deploywebddev]
     runs-on: ubuntu-latest
     environment: 
       name: prod
@@ -141,7 +141,7 @@ jobs:
           kubeconfig: '${{ secrets.KUBECONFIG }}'
           exec: helm upgrade $APPNAME charts/api  --install --wait --atomic --namespace=$NAMESPACE  --set ingress.host=$DNS --set ingress.path=$INGRESSPATH   --set=app.name=$APPNAME --set image.repository=$IMAGE --set image.tag=15-${{ steps.settag.outputs.short_ref }}
   deploywebprod:
-    needs: [deployapiddev, deploywebdev]
+    needs: [deployapiddev, deploywebddev]
     runs-on: ubuntu-latest
     environment: 
       name: prod
