@@ -7,13 +7,11 @@ on:
   pull_request:
     paths:
     - "src/api/**"
-    branches:
-    - "main"
   push:
     paths:
     - "src/api/**"
-   branches:
-  - "main"
+    branches:
+    - "main"
   workflow_dispatch:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
